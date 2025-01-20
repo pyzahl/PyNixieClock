@@ -34,11 +34,19 @@ from gi.repository import Gtk, GObject, GLib, Gdk
 #from threading import Timer
 import cairo
 
-scale=0.2
+scale   = 0.2
+opacity = 0.75
+
+print ("\nPyNixieClock [scale=0.2 [opcaity=0.75]]\n")
 
 if len(sys.argv) > 1:
     scale = float(sys.argv[1])
     print (scale)
+
+if len(sys.argv) > 2:
+    opacity = float(sys.argv[2])
+    print (opacity)
+
 
 
 class NixieTube(Gtk.DrawingArea):
@@ -56,6 +64,19 @@ class NixieTube(Gtk.DrawingArea):
         self.set_draw_func(self.draw)
   
     def draw(self, widget, cr, width, height):
+
+        #cr.set_operator(cairo.OPERATOR_CLEAR)
+        # Makes the mask fill the entire window
+        #cr.rectangle(0.0, 0.0, width, height)
+        # Deletes everything in the window (since the compositing operator is clear and mask fills the entire window
+        #cr.fill()
+        # Set the compositing operator back to the default
+        #cr.set_operator(cairo.OPERATOR_OVER)
+
+        cr.set_operator(cairo.OPERATOR_CLEAR)
+        cr.rectangle(0.0, 0.0, width, height)
+        cr.fill()
+        cr.set_operator(cairo.OPERATOR_OVER)
         cr.scale(self.cairo_scale, self.cairo_scale)
         cr.set_source_surface (self.nixiesurface)
         cr.paint()
@@ -109,12 +130,14 @@ class NixieClock():
         
         # … create a new window…
         win = Gtk.ApplicationWindow(application=app, title='Py Nixie Clock')
-        if scale < 0.5:
+        if scale < 0.4:
             win.set_decorated(False)
 
+        win.set_opacity(opacity)
+            
         css_provider = Gtk.CssProvider()
         css_provider.load_from_path('style.css')
-
+        
         # … with a button in it…
         grid = Gtk.Grid()
         grid.get_style_context().add_provider(css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
@@ -133,10 +156,10 @@ class NixieClock():
         
         #grid.set_column_spacing(0)
 
-        self.label = Gtk.Label()
-        self.label.set_markup("<span font_desc='24'>00:00:00</span>")
-        if x:
-            grid.attach(self.label, 1,1, 1,1)
+        self.timelabel = Gtk.Label()
+        self.timelabel.set_markup("<span font_desc='24'>00:00:00</span>")
+        if scale > 0.4:
+            grid.attach(self.timelabel, 1,1, 2,1)
             grid.attach(btn, 8,1, 1,1)
 
         self.NxH10 = NixieTube()
@@ -190,7 +213,7 @@ class NixieClock():
         self.NxS01.set_reading (current_time.get_second()%10)
         
         # Update the label
-        self.label.set_markup(f"<span font_desc='24'>{time_string}</span>")
+        self.timelabel.set_markup(f"<span font_desc='24'>{time_string}</span>")
 
         # Return True to keep the timeout running
         return True

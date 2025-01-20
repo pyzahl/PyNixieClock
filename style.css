@@ -2,5 +2,6 @@
 .nxgrid {
     font-size: 25px;
     font-weight: bold;
-    background-color: #000000;
+    //background-color: #000000;
+    background-color: transparent;
 }
